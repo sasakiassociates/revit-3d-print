@@ -1,0 +1,110 @@
+<Workspace Version="1.2.1.3083" X="-269.334430622935" Y="207.504124790629" zoom="0.325459944149522" Name="Home" Description="" RunType="Manual" RunPeriod="1000" HasRunWithoutCrash="True">
+  <NamespaceResolutionMap />
+  <Elements>
+    <Dynamo.Graph.Nodes.CustomNodes.Function guid="bf5d7b9b-4084-424a-8d7f-1a253a41372b" type="Dynamo.Graph.Nodes.CustomNodes.Function" nickname="Get Views By Type" x="2315.05575916136" y="109.968317327365" isVisible="true" isUpstreamVisible="true" lacing="Shortest" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <ID value="4e0b51dc-4522-4f0f-8ab2-b41cee1b615f" />
+      <Name value="Get Views By Type" />
+      <Description value="Get all views in the project classified by type" />
+      <Inputs />
+      <Outputs>
+        <Output value="areaPlans" />
+        <Output value="ceilingPlans" />
+        <Output value="floorPlans" />
+        <Output value="loadReports" />
+        <Output value="renderings" />
+        <Output value="columnSchedules" />
+        <Output value="draftingViews" />
+        <Output value="elevations" />
+        <Output value="internal" />
+        <Output value="panelSchedules" />
+        <Output value="reports" />
+        <Output value="costReport" />
+        <Output value="drawingSheets" />
+        <Output value="engineeringPlans" />
+        <Output value="legends" />
+        <Output value="pressureLossReports" />
+        <Output value="schedules" />
+        <Output value="details" />
+        <Output value="sections" />
+        <Output value="threeD" />
+        <Output value="undefined" />
+        <Output value="walkthrough" />
+      </Outputs>
+    </Dynamo.Graph.Nodes.CustomNodes.Function>
+    <Dynamo.Graph.Nodes.CustomNodes.Function guid="d2743dfb-eba8-4fde-9bee-8ca6fcf0fcc1" type="Dynamo.Graph.Nodes.CustomNodes.Function" nickname="ScopeBox Collector" x="1014.3078822605" y="868.895414491063" isVisible="true" isUpstreamVisible="true" lacing="Shortest" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <ID value="07a5003a-926d-4c01-8b45-0672be31f9b6" />
+      <Name value="ScopeBox Collector" />
+      <Description value="Gets Scope boxes from document. Output Elements, Names and Count" />
+      <Inputs />
+      <Outputs>
+        <Output value="Elements" />
+        <Output value="Names" />
+        <Output value="Count" />
+        <Output value="GUID" />
+      </Outputs>
+    </Dynamo.Graph.Nodes.CustomNodes.Function>
+    <CoreNodeModels.Watch guid="376b9abd-896c-4f9b-8cb3-197b62b7b469" type="CoreNodeModels.Watch" nickname="Watch" x="1221.85491633604" y="864.817581320945" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+    </CoreNodeModels.Watch>
+    <Dynamo.Graph.Nodes.ZeroTouch.DSFunction guid="7d6eb6cb-ab58-4aa5-8224-e0d07b7c89e6" type="Dynamo.Graph.Nodes.ZeroTouch.DSFunction" nickname="List.FilterByBoolMask" x="1820.23214762946" y="867.548977822569" isVisible="true" isUpstreamVisible="true" lacing="Shortest" isSelectedInput="False" IsFrozen="false" isPinned="false" assembly="DSCoreNodes.dll" function="DSCore.List.FilterByBoolMask@var[]..[],var[]..[]">
+      <PortInfo index="0" default="False" />
+      <PortInfo index="1" default="False" />
+    </Dynamo.Graph.Nodes.ZeroTouch.DSFunction>
+    <Dynamo.Graph.Nodes.ZeroTouch.DSFunction guid="499256e3-0245-468a-aa39-e2ae62c5f621" type="Dynamo.Graph.Nodes.ZeroTouch.DSFunction" nickname="==" x="1569.15918199192" y="1083.16229321344" isVisible="true" isUpstreamVisible="true" lacing="Shortest" isSelectedInput="False" IsFrozen="false" isPinned="true" assembly="Operators" function="==@var[]..[],var[]..[]">
+      <PortInfo index="0" default="False" />
+      <PortInfo index="1" default="False" />
+    </Dynamo.Graph.Nodes.ZeroTouch.DSFunction>
+    <CoreNodeModels.Watch guid="1b2bb7cb-3778-4cc6-93de-45c595c76a4c" type="CoreNodeModels.Watch" nickname="Watch" x="1217.90206874436" y="1075.90586785142" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+    </CoreNodeModels.Watch>
+    <Dynamo.Graph.Nodes.CodeBlockNodeModel guid="3aa46aa5-1ee1-4edc-af8f-058fc73de980" type="Dynamo.Graph.Nodes.CodeBlockNodeModel" nickname="Code Block" x="1219.14963034684" y="1285.28572475969" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" CodeText="&quot;Scope Box for 3D Printing&quot;;" ShouldFocus="false" />
+    <CoreNodeModels.Watch guid="2e43c3da-73a1-413a-94a5-baf2cd9bc706" type="CoreNodeModels.Watch" nickname="Watch" x="2044.83493634443" y="863.813517573305" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+    </CoreNodeModels.Watch>
+    <Dynamo.Graph.Nodes.CustomNodes.Function guid="067f6523-46ca-4605-9c28-cf0111ea76f7" type="Dynamo.Graph.Nodes.CustomNodes.Function" nickname="Scope Boxes to Views" x="2725.11685683278" y="606.645539920825" isVisible="true" isUpstreamVisible="true" lacing="Shortest" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <PortInfo index="1" default="False" />
+      <ID value="5d0ebf3a-aae9-4b9d-869b-3f6a5dd1e9de" />
+      <Name value="Scope Boxes to Views" />
+      <Description value="Create as many dependent view as needed to selected views to apply selected Scope Boxes." />
+      <Inputs>
+        <Input value="Views" />
+        <Input value="ScopeBoxes" />
+      </Inputs>
+      <Outputs>
+        <Output value="depViews" />
+      </Outputs>
+    </Dynamo.Graph.Nodes.CustomNodes.Function>
+  </Elements>
+  <Connectors>
+    <Dynamo.Graph.Connectors.ConnectorModel start="bf5d7b9b-4084-424a-8d7f-1a253a41372b" start_index="18" end="067f6523-46ca-4605-9c28-cf0111ea76f7" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="d2743dfb-eba8-4fde-9bee-8ca6fcf0fcc1" start_index="0" end="376b9abd-896c-4f9b-8cb3-197b62b7b469" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="d2743dfb-eba8-4fde-9bee-8ca6fcf0fcc1" start_index="1" end="1b2bb7cb-3778-4cc6-93de-45c595c76a4c" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="376b9abd-896c-4f9b-8cb3-197b62b7b469" start_index="0" end="7d6eb6cb-ab58-4aa5-8224-e0d07b7c89e6" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="7d6eb6cb-ab58-4aa5-8224-e0d07b7c89e6" start_index="0" end="2e43c3da-73a1-413a-94a5-baf2cd9bc706" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="499256e3-0245-468a-aa39-e2ae62c5f621" start_index="0" end="7d6eb6cb-ab58-4aa5-8224-e0d07b7c89e6" end_index="1" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="1b2bb7cb-3778-4cc6-93de-45c595c76a4c" start_index="0" end="499256e3-0245-468a-aa39-e2ae62c5f621" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="3aa46aa5-1ee1-4edc-af8f-058fc73de980" start_index="0" end="499256e3-0245-468a-aa39-e2ae62c5f621" end_index="1" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="2e43c3da-73a1-413a-94a5-baf2cd9bc706" start_index="0" end="067f6523-46ca-4605-9c28-cf0111ea76f7" end_index="1" portType="0" />
+  </Connectors>
+  <Notes />
+  <Annotations>
+    <Dynamo.Graph.Annotations.AnnotationModel guid="8c5b9cf1-cf10-47a7-ac71-afe8f2aa7b38" annotationText="Grab Scope Box by Name" left="1004.3078822605" top="825.013517573305" width="1239.32705408393" height="552.872207186389" fontSize="24" InitialTop="863.813517573305" InitialHeight="543.06814343875" TextblockHeight="28.8" backgrouund="#FFC1D676">
+      <Models ModelGuid="d2743dfb-eba8-4fde-9bee-8ca6fcf0fcc1" />
+      <Models ModelGuid="376b9abd-896c-4f9b-8cb3-197b62b7b469" />
+      <Models ModelGuid="7d6eb6cb-ab58-4aa5-8224-e0d07b7c89e6" />
+      <Models ModelGuid="499256e3-0245-468a-aa39-e2ae62c5f621" />
+      <Models ModelGuid="1b2bb7cb-3778-4cc6-93de-45c595c76a4c" />
+      <Models ModelGuid="3aa46aa5-1ee1-4edc-af8f-058fc73de980" />
+      <Models ModelGuid="2e43c3da-73a1-413a-94a5-baf2cd9bc706" />
+    </Dynamo.Graph.Annotations.AnnotationModel>
+    <Dynamo.Graph.Annotations.AnnotationModel guid="140d5354-2132-4bff-b537-745ed3668fcb" annotationText="Create Section by &quot;Scope Box&quot;" left="2305.05575916136" top="63.9683173273646" width="671.661097671418" height="676.2" fontSize="30" InitialTop="109.968317327365" InitialHeight="660.2" TextblockHeight="36" backgrouund="#FFFFB8D8">
+      <Models ModelGuid="bf5d7b9b-4084-424a-8d7f-1a253a41372b" />
+      <Models ModelGuid="067f6523-46ca-4605-9c28-cf0111ea76f7" />
+    </Dynamo.Graph.Annotations.AnnotationModel>
+  </Annotations>
+  <Presets />
+  <Cameras>
+    <Camera Name="Background Preview" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
+  </Cameras>
+</Workspace>

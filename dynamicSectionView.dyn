@@ -1,7 +1,7 @@
-<Workspace Version="1.2.1.3083" X="-330.993649318203" Y="106.287886261941" zoom="0.76947022881878" Name="Home" Description="" RunType="Manual" RunPeriod="1000" HasRunWithoutCrash="True">
+<Workspace Version="1.2.1.3083" X="-579.11594907194" Y="313.612682263987" zoom="1.01069398204528" Name="Home" Description="" RunType="Manual" RunPeriod="1000" HasRunWithoutCrash="True">
   <NamespaceResolutionMap />
   <Elements>
-    <PythonNodeModels.PythonNode guid="de398f19-9dda-4448-b260-d97475bc1588" type="PythonNodeModels.PythonNode" nickname="DynamicSectionView:Python Script" x="1619.45448688908" y="46.4088452597064" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="true" inputcount="5">
+    <PythonNodeModels.PythonNode guid="de398f19-9dda-4448-b260-d97475bc1588" type="PythonNodeModels.PythonNode" nickname="DynamicSectionView:Python Script" x="1555.45241716312" y="48.3876835980456" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="true" inputcount="5">
       <PortInfo index="0" default="False" />
       <PortInfo index="1" default="False" />
       <PortInfo index="2" default="False" />
@@ -35,9 +35,7 @@ from Autodesk.Revit.DB import ViewFamilyType as _ViewFamilyType
 import System
 from System import Array
 from System.Collections.Generic import *
-
 import sys
-
 
 def get_ViewFamilyTypeId(viewFamilyTypeName):	
 	names = []
@@ -53,19 +51,43 @@ def get_ViewFamilyTypeId(viewFamilyTypeName):
 	return viewFamilyTypeId
 			
 			
-def create_view(doc, viewFamilyTypeId, boundingBox):			
+def create_view(doc, viewFamilyTypeId, boundingBox, voxel_size):		
 	if viewFamilyTypeId != -1:
-		TransactionManager.Instance.EnsureInTransaction(doc)	
-		sectionView = ViewSection.CreateDetail(doc, viewFamilyTypeId, boundingBox) # http://www.revitapidocs.com/2016/834e7154-b2f0-ffcd-b04a-9ad8cee321c8.htm
+		TransactionManager.Instance.EnsureInTransaction(doc)
+		boundingBoxSlice = boundingBox
+		boundingBoxSlice.Max = XYZ(boundingBox.Max.X, boundingBox.Max.Y, boundingBox.Min.Z + voxel_size)  # adjust boundingbox for far clip offset\
+		sectionView = ViewSection.CreateDetail(doc, viewFamilyTypeId, boundingBoxSlice) # http://www.revitapidocs.com/2016/834e7154-b2f0-ffcd-b04a-9ad8cee321c8.htm		
 		TransactionManager.Instance.TransactionTaskDone()
 		return sectionView
 
+
+def update_view(doc, view, voxel_size):
+	TransactionManager.Instance.EnsureInTransaction(doc)	
+	translationVec = XYZ(0, 0, voxel_size)
+	viewId = Autodesk.Revit.DB.ElementId(int(str(view.Id)) - 1)
+	ElementTransformUtils.MoveElement(doc, viewId, translationVec)	
+	TransactionManager.Instance.TransactionTaskDone()
+	return sectionView, height
+	
 
 def export_view_images(viewIds, path, pixel_size, doc):
 	TransactionManager.Instance.EnsureInTransaction(doc)
 	ieo = ImageExportOptions()
 	ieo.ExportRange = ExportRange.SetOfViews
 	ieo.SetViewsAndSheets(viewIds)
+	ieo.FilePath = path
+	ieo.HLRandWFViewsFileType = ImageFileType.PNG
+	ieo.ShadowViewsFileType = ImageFileType.PNG
+	ieo.PixelSize = pixel_size
+	doc.ExportImage(ieo)
+	TransactionManager.Instance.TransactionTaskDone()
+	
+	
+def export_view_image(view, path, pixel_size, doc):
+	TransactionManager.Instance.EnsureInTransaction(doc)
+	ieo = ImageExportOptions()
+	ieo.ExportRange = ExportRange.SetOfViews
+	ieo.SetViewsAndSheets([view.Id])
 	ieo.FilePath = path	
 	ieo.HLRandWFViewsFileType = ImageFileType.PNG
 	ieo.ShadowViewsFileType = ImageFileType.PNG
@@ -81,17 +103,6 @@ def delete_views(doc, views):
 	TransactionManager.Instance.TransactionTaskDone()
 
 
-def scopeBox2cropBox(scopeBox, viewFamilyTypeId, boundingBox, height):
-	TransactionManager.Instance.EnsureInTransaction(doc)
-	if height &gt;= 0:
-		boundingBox.Min = XYZ(boundingBox.Min.X, boundingBox.Min.Y, min(height, boundingBox.Max.Z))
-	sectionView = ViewSection.CreateDetail(doc, viewFamilyTypeId, boundingBox) # http://www.revitapidocs.com/2016/834e7154-b2
-	param = sectionView.get_Parameter(BuiltInParameter.VIEWER_VOLUME_OF_INTEREST_CROP)
-	param.Set(scopeBox.Id)
-	TransactionManager.Instance.TransactionTaskDone()
-	return sectionView, sectionView.CropBox
-
-
 def apply_viewTemplate(doc, view, viewTemplateName):
 	viewTemplate = None
 	collector = FilteredElementCollector(doc).OfClass(View)
@@ -105,94 +116,75 @@ def apply_viewTemplate(doc, view, viewTemplateName):
 	TransactionManager.Instance.TransactionTaskDone()
 
 
+def get_scopeBox(name):
+	collector = FilteredElementCollector(doc)
+	elements = collector.OfCategory(BuiltInCategory.OST_VolumeOfInterest).ToElements()
+	for element in elements:
+		if element.Name == name:
+			return element
+
+
 filePath = IN[0]
 voxel_size = IN[1]
-scopeBox = UnwrapElement(IN[2])
+scopeBox_name = IN[2]
 viewTemplateName = IN[3]
-keep_views = IN[4]
-doc = DocumentManager.Instance.CurrentDBDocument
+is_delete = IN[4]
 
-views = []
-viewIds = []
-viewNames = []
+doc = DocumentManager.Instance.CurrentDBDocument
+scopeBox = get_scopeBox(scopeBox_name)
+
 try:
-	pre_i = 0 # slow issue: delete the first picture
-	pre_j = 0
 	count = -1
+	heights = []
 	
 	viewFamilyTypeId = get_ViewFamilyTypeId("Detail View")
 	boundingBox = scopeBox.get_BoundingBox(None) # https://github.com/DynamoDS/DynamoRevit/blob/Revit2015/src/Libraries/RevitNodes/Elements/Element.cs
-	sectionView, cropBox = scopeBox2cropBox(scopeBox, viewFamilyTypeId, boundingBox, -1)
+	
+	bottom = boundingBox.Min.Z
+	top = boundingBox.Max.Z
+	height = bottom
+	digit = len(str(int((top - bottom) / voxel_size))) 
+	pixel_size = (boundingBox.Max.X - boundingBox.Min.X) * 12 * voxel_size  # TODO: identical to 3D printer
+	
+	sectionView = create_view(doc, viewFamilyTypeId, boundingBox, voxel_size)
 	apply_viewTemplate(doc, sectionView, viewTemplateName)
 	
-	minPoint = cropBox.Min
-	maxPoint = cropBox.Max
-	bottom = minPoint.Z
-	top = maxPoint.Z
-	height = 0
-	digit = len(str(int((top - bottom) / voxel_size))) 
-	pixel_size = (boundingBox.Max.X - boundingBox.Min.X) * 12 * voxel_size
+	while height &lt; top:
+		# if count &gt; 5:  # TEMP for test
+		# 	break
 	
-	while height + bottom &lt; top:
-		if count &gt; 5:
-			break
+		heights.append(height)
 	
-		height += voxel_size
-		sectionView_t, cropBox_t = scopeBox2cropBox(scopeBox, viewFamilyTypeId, boundingBox, height)
-		apply_viewTemplate(doc, sectionView_t, viewTemplateName)
+		height += voxel_size	
+		update_view(doc, sectionView, voxel_size)
 		
-		views.append(sectionView_t)
-		viewIds.append(sectionView_t.Id)
-		viewNames.append(sectionView_t.ViewName)
+		imageName = filePath + "\\" + str(count).rjust(digit)
+		export_view_image(sectionView, imageName, pixel_size, doc)
+		
 		count += 1
 		
-	TransactionManager.Instance.ForceCloseTransaction() # Dynamo transaction force close order
-	imageName = filePath #/ + str(count).rjust(digit)
-	export_view_images(viewIds, imageName, pixel_size, doc)
-	
-	if keep_views == False: # input all as string
-			delete_views(doc, views)
+	if is_delete:
+		delete_views(doc, [sectionView])
+		
+	TransactionManager.Instance.ForceCloseTransaction()  # Dynamo transaction force close order
 			
-	OUT = "succeed", sectionView, bottom, top
+	OUT = "succeed", sectionView, pixel_size, boundingBox.Min, boundingBox.Max, heights
 except Exception as e:
 	OUT =  "failed", e
 </Script>
     </PythonNodeModels.PythonNode>
-    <Dynamo.Graph.Nodes.CodeBlockNodeModel guid="d5c1fe87-270a-4c1b-9e06-f0552677a491" type="Dynamo.Graph.Nodes.CodeBlockNodeModel" nickname="Code Block" x="757.089531535513" y="50.4515055008084" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" CodeText="&quot;C:\Dynamo\ViewRange\\test_views\\slice&quot;;&#xA;1;&#xA;&quot;Scope Box 3&quot;;&#xA;&quot;3d Print&quot;;&#xA;false;" ShouldFocus="false" />
-    <DSRevitNodesUI.Categories guid="0ac7e01e-a7a9-4303-b005-774a067227d1" type="DSRevitNodesUI.Categories" nickname="Categories" x="417.981156190448" y="291.583260967862" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false" index="387:VolumeOfInterest" />
-    <DSRevitNodesUI.ElementsOfCategory guid="f85e13f9-fc10-4633-8c7b-0f97c096a2db" type="DSRevitNodesUI.ElementsOfCategory" nickname="All Elements of Category" x="600.351952806209" y="299.706628066686" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
-      <PortInfo index="0" default="False" />
-    </DSRevitNodesUI.ElementsOfCategory>
-    <Dynamo.Graph.Nodes.ZeroTouch.DSFunction guid="6c1931d9-82ba-49b7-912e-87fa4efa5eac" type="Dynamo.Graph.Nodes.ZeroTouch.DSFunction" nickname="List.FilterByBoolMask" x="1145.90383013797" y="341.559332245561" isVisible="true" isUpstreamVisible="true" lacing="Shortest" isSelectedInput="False" IsFrozen="false" isPinned="false" assembly="DSCoreNodes.dll" function="DSCore.List.FilterByBoolMask@var[]..[],var[]..[]">
-      <PortInfo index="0" default="False" />
-      <PortInfo index="1" default="False" />
-    </Dynamo.Graph.Nodes.ZeroTouch.DSFunction>
-    <Dynamo.Graph.Nodes.ZeroTouch.DSFunction guid="785b7cbd-f4c0-4d9e-9250-f83041b2048c" type="Dynamo.Graph.Nodes.ZeroTouch.DSFunction" nickname="Element.Name" x="707.341448788196" y="409.188110678003" isVisible="true" isUpstreamVisible="true" lacing="Shortest" isSelectedInput="False" IsFrozen="false" isPinned="false" assembly="RevitNodes.dll" function="Revit.Elements.Element.Name">
-      <PortInfo index="0" default="False" />
-    </Dynamo.Graph.Nodes.ZeroTouch.DSFunction>
-    <Dynamo.Graph.Nodes.ZeroTouch.DSFunction guid="45a4b0cd-8901-4ad0-84f9-12d576521c53" type="Dynamo.Graph.Nodes.ZeroTouch.DSFunction" nickname="==" x="947.116208685036" y="405.089396833612" isVisible="true" isUpstreamVisible="true" lacing="Shortest" isSelectedInput="False" IsFrozen="false" isPinned="false" assembly="Operators" function="==@var[]..[],var[]..[]">
-      <PortInfo index="0" default="False" />
-      <PortInfo index="1" default="False" />
-    </Dynamo.Graph.Nodes.ZeroTouch.DSFunction>
-    <Dynamo.Graph.Nodes.CodeBlockNodeModel guid="9e2cc822-7ab5-48c6-90f6-a74c691943f4" type="Dynamo.Graph.Nodes.CodeBlockNodeModel" nickname="Code Block" x="1288.62209486098" y="228.29274681134" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" CodeText="x[0];" ShouldFocus="false">
-      <PortInfo index="0" default="False" />
-    </Dynamo.Graph.Nodes.CodeBlockNodeModel>
+    <Dynamo.Graph.Nodes.CodeBlockNodeModel guid="d5c1fe87-270a-4c1b-9e06-f0552677a491" type="Dynamo.Graph.Nodes.CodeBlockNodeModel" nickname="Code Block" x="1015.32793468879" y="48.4726671624691" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" CodeText="&quot;C:\Dynamo\\test\ViewRange\\test_views\\slice&quot;;&#xA;1;&#xA;&quot;Scope Box 3&quot;;&#xA;&quot;3d Print&quot;;&#xA;false;" ShouldFocus="false" />
   </Elements>
   <Connectors>
     <Dynamo.Graph.Connectors.ConnectorModel start="d5c1fe87-270a-4c1b-9e06-f0552677a491" start_index="0" end="de398f19-9dda-4448-b260-d97475bc1588" end_index="0" portType="0" />
     <Dynamo.Graph.Connectors.ConnectorModel start="d5c1fe87-270a-4c1b-9e06-f0552677a491" start_index="1" end="de398f19-9dda-4448-b260-d97475bc1588" end_index="1" portType="0" />
-    <Dynamo.Graph.Connectors.ConnectorModel start="d5c1fe87-270a-4c1b-9e06-f0552677a491" start_index="2" end="45a4b0cd-8901-4ad0-84f9-12d576521c53" end_index="1" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="d5c1fe87-270a-4c1b-9e06-f0552677a491" start_index="2" end="de398f19-9dda-4448-b260-d97475bc1588" end_index="2" portType="0" />
     <Dynamo.Graph.Connectors.ConnectorModel start="d5c1fe87-270a-4c1b-9e06-f0552677a491" start_index="3" end="de398f19-9dda-4448-b260-d97475bc1588" end_index="3" portType="0" />
     <Dynamo.Graph.Connectors.ConnectorModel start="d5c1fe87-270a-4c1b-9e06-f0552677a491" start_index="4" end="de398f19-9dda-4448-b260-d97475bc1588" end_index="4" portType="0" />
-    <Dynamo.Graph.Connectors.ConnectorModel start="0ac7e01e-a7a9-4303-b005-774a067227d1" start_index="0" end="f85e13f9-fc10-4633-8c7b-0f97c096a2db" end_index="0" portType="0" />
-    <Dynamo.Graph.Connectors.ConnectorModel start="f85e13f9-fc10-4633-8c7b-0f97c096a2db" start_index="0" end="6c1931d9-82ba-49b7-912e-87fa4efa5eac" end_index="0" portType="0" />
-    <Dynamo.Graph.Connectors.ConnectorModel start="f85e13f9-fc10-4633-8c7b-0f97c096a2db" start_index="0" end="785b7cbd-f4c0-4d9e-9250-f83041b2048c" end_index="0" portType="0" />
-    <Dynamo.Graph.Connectors.ConnectorModel start="6c1931d9-82ba-49b7-912e-87fa4efa5eac" start_index="0" end="9e2cc822-7ab5-48c6-90f6-a74c691943f4" end_index="0" portType="0" />
-    <Dynamo.Graph.Connectors.ConnectorModel start="785b7cbd-f4c0-4d9e-9250-f83041b2048c" start_index="0" end="45a4b0cd-8901-4ad0-84f9-12d576521c53" end_index="0" portType="0" />
-    <Dynamo.Graph.Connectors.ConnectorModel start="45a4b0cd-8901-4ad0-84f9-12d576521c53" start_index="0" end="6c1931d9-82ba-49b7-912e-87fa4efa5eac" end_index="1" portType="0" />
-    <Dynamo.Graph.Connectors.ConnectorModel start="9e2cc822-7ab5-48c6-90f6-a74c691943f4" start_index="0" end="de398f19-9dda-4448-b260-d97475bc1588" end_index="2" portType="0" />
   </Connectors>
-  <Notes />
+  <Notes>
+    <Dynamo.Graph.Notes.NoteModel guid="1f7ed75c-d75a-48b6-ad1d-3087eb4cd3ec" text="para1: image export directory&#xD;&#xA;para2: voxel size&#xD;&#xA;para3: ScopeBox name&#xD;&#xA;para4: ViewTemplate name&#xD;&#xA;para5: delete temporary DetailView afterward" x="1019.67684410681" y="-62.4792296066348" />
+  </Notes>
   <Annotations />
   <Presets />
   <Cameras>

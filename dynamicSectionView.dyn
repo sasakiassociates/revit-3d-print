@@ -1,4 +1,4 @@
-<Workspace Version="1.2.1.3083" X="-579.11594907194" Y="313.612682263987" zoom="1.01069398204528" Name="Home" Description="" RunType="Manual" RunPeriod="1000" HasRunWithoutCrash="True">
+<Workspace Version="1.2.1.3083" X="-976.11594907194" Y="267.612682263987" zoom="1.01069398204528" Name="Home" Description="" RunType="Manual" RunPeriod="1000" HasRunWithoutCrash="True">
   <NamespaceResolutionMap />
   <Elements>
     <PythonNodeModels.PythonNode guid="de398f19-9dda-4448-b260-d97475bc1588" type="PythonNodeModels.PythonNode" nickname="DynamicSectionView:Python Script" x="1555.45241716312" y="48.3876835980456" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="true" inputcount="5">
@@ -37,6 +37,9 @@ from System import Array
 from System.Collections.Generic import *
 import sys
 
+import math
+
+
 def get_ViewFamilyTypeId(viewFamilyTypeName):	
 	names = []
 	ids = []
@@ -54,9 +57,15 @@ def get_ViewFamilyTypeId(viewFamilyTypeName):
 def create_view(doc, viewFamilyTypeId, boundingBox, voxel_size):		
 	if viewFamilyTypeId != -1:
 		TransactionManager.Instance.EnsureInTransaction(doc)
+		
 		boundingBoxSlice = boundingBox
-		boundingBoxSlice.Max = XYZ(boundingBox.Max.X, boundingBox.Max.Y, boundingBox.Min.Z + voxel_size)  # adjust boundingbox for far clip offset\
-		sectionView = ViewSection.CreateDetail(doc, viewFamilyTypeId, boundingBoxSlice) # http://www.revitapidocs.com/2016/834e7154-b2f0-ffcd-b04a-9ad8cee321c8.htm		
+		boundingBoxSlice.Max = XYZ(boundingBox.Max.X, boundingBox.Max.Y, boundingBox.Min.Z + voxel_size)  # adjust boundingbox for far clip offset		
+		sectionView = ViewSection.CreateDetail(doc, viewFamilyTypeId, boundingBoxSlice) # http://www.revitapidocs.com/2016/834e7154-b2f0-ffcd-b04a-9ad8cee321c8.htm			
+		
+		viewId = Autodesk.Revit.DB.ElementId(int(str(sectionView.Id)) - 1)
+		axis = Line.CreateBound(XYZ(0, 0, 0), XYZ(1, 0, 0))  # flip DetailView direction
+		ElementTransformUtils.RotateElement(doc, viewId, axis, math.pi)	
+		
 		TransactionManager.Instance.TransactionTaskDone()
 		return sectionView
 

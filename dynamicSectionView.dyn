@@ -1,12 +1,13 @@
 <Workspace Version="1.2.1.3083" X="-976.11594907194" Y="267.612682263987" zoom="1.01069398204528" Name="Home" Description="" RunType="Manual" RunPeriod="1000" HasRunWithoutCrash="True">
   <NamespaceResolutionMap />
   <Elements>
-    <PythonNodeModels.PythonNode guid="de398f19-9dda-4448-b260-d97475bc1588" type="PythonNodeModels.PythonNode" nickname="DynamicSectionView:Python Script" x="1555.45241716312" y="48.3876835980456" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="true" inputcount="5">
+    <PythonNodeModels.PythonNode guid="de398f19-9dda-4448-b260-d97475bc1588" type="PythonNodeModels.PythonNode" nickname="DynamicSectionView:Python Script" x="1556.44183633229" y="48.3876835980456" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="true" inputcount="6">
       <PortInfo index="0" default="False" />
       <PortInfo index="1" default="False" />
       <PortInfo index="2" default="False" />
       <PortInfo index="3" default="False" />
       <PortInfo index="4" default="False" />
+      <PortInfo index="5" default="False" />
       <Script>import clr
 clr.AddReference('ProtoGeometry')
 from Autodesk.DesignScript.Geometry import *
@@ -122,59 +123,57 @@ def get_scopeBox(name):
 
 filePath = IN[0]
 scale = IN[1]
-scopeBox_name = IN[2]
-viewTemplateName = IN[3]
-is_delete = IN[4]
+ppi = IN[2]
+scopeBox_name = IN[3]
+viewTemplateName = IN[4]
+is_delete = IN[5]
 
 doc = DocumentManager.Instance.CurrentDBDocument
 scopeBox = get_scopeBox(scopeBox_name)
 
-#try:
-count = -1
-heights = []
-
-viewFamilyTypeId = get_ViewFamilyTypeId("Detail View")
-boundingBox = scopeBox.get_BoundingBox(None) # https://github.com/DynamoDS/DynamoRevit/blob/Revit2015/src/Libraries/RevitNodes/Elements/Element.cs
-
-voxel_size = 1  # feet to inch, scale has been set to DetailView
-image_width = (boundingBox.Max.X - boundingBox.Min.X) * 12.0 / scale  # feet to inch
-OUT = image_width
-return
-
-
-bottom = boundingBox.Min.Z
-top = boundingBox.Max.Z
-height = bottom
-digit = len(str(int((top - bottom) / voxel_size))) 	
-
-sectionView = create_view(doc, viewFamilyTypeId, boundingBox, voxel_size)
-apply_viewTemplate(doc, sectionView, viewTemplateName)
-
-while height &lt; top:
-	# if count &gt; 5:  # TEMP for test
-	# 	break
-
-	heights.append(height)
-
-	height += voxel_size	
-	update_view(doc, sectionView, voxel_size)
+try:
+	count = -1
+	heights = []
 	
-	imageName = filePath + "\\" + str(count).rjust(digit)
-	export_view_image(sectionView, imageName, image_width, doc)
+	viewFamilyTypeId = get_ViewFamilyTypeId("Detail View")
+	boundingBox = scopeBox.get_BoundingBox(None) # https://github.com/DynamoDS/DynamoRevit/blob/Revit2015/src/Libraries/RevitNodes/Elements/Element.cs
 	
-	count += 1
+	voxel_size = scale / ppi
+	image_width = (boundingBox.Max.X - boundingBox.Min.X) * 12 / scale * ppi # feet to inch
 	
-if is_delete:
-	delete_views(doc, [sectionView])
+	bottom = boundingBox.Min.Z
+	top = boundingBox.Max.Z
+	height = bottom
+	digit = len(str(int((top - bottom) / voxel_size))) 	
 	
-TransactionManager.Instance.ForceCloseTransaction()  # Dynamo transaction force close order
+	sectionView = create_view(doc, viewFamilyTypeId, boundingBox, voxel_size)
+	apply_viewTemplate(doc, sectionView, viewTemplateName)
+	
+	while height &lt; top:
+		# if count &gt; 5:  # TEMP for test
+		# 	break
+	
+		heights.append(height)
+	
+		height += voxel_size	
+		update_view(doc, sectionView, voxel_size)
 		
-OUT = "succeed", sectionView, pixel_size, boundingBox.Min, boundingBox.Max, heights
-#except Exception as e:
-#	OUT =  "failed", e
+		imageName = filePath + "\\" + str(count).rjust(digit)
+		export_view_image(sectionView, imageName, image_width, doc)
+		
+		count += 1
+		
+	if is_delete:
+		delete_views(doc, [sectionView])
+		
+	TransactionManager.Instance.ForceCloseTransaction()  # Dynamo transaction force close order
+			
+	OUT = "succeed", sectionView, image_width, boundingBox.Min, boundingBox.Max, heights
+except Exception as e:
+	OUT =  "failed", e
 </Script>
     </PythonNodeModels.PythonNode>
-    <Dynamo.Graph.Nodes.CodeBlockNodeModel guid="d5c1fe87-270a-4c1b-9e06-f0552677a491" type="Dynamo.Graph.Nodes.CodeBlockNodeModel" nickname="Code Block" x="1027.20096471883" y="45.5044096549602" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" CodeText="&quot;C:\Dynamo\\test\ViewRange\\test_views\\slice&quot;;&#xA;10;&#xA;&quot;Scope Box 3&quot;;&#xA;&quot;3d Print&quot;;&#xA;false;" ShouldFocus="false" />
+    <Dynamo.Graph.Nodes.CodeBlockNodeModel guid="d5c1fe87-270a-4c1b-9e06-f0552677a491" type="Dynamo.Graph.Nodes.CodeBlockNodeModel" nickname="Code Block" x="1027.20096471883" y="45.5044096549602" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" CodeText="&quot;C:\Dynamo\\test\ViewRange\\test_views\\slice&quot;;&#xA;100;&#xA;100;&#xA;&quot;Scope Box 3&quot;;&#xA;&quot;3d Print&quot;;&#xA;false;" ShouldFocus="false" />
   </Elements>
   <Connectors>
     <Dynamo.Graph.Connectors.ConnectorModel start="d5c1fe87-270a-4c1b-9e06-f0552677a491" start_index="0" end="de398f19-9dda-4448-b260-d97475bc1588" end_index="0" portType="0" />
@@ -182,9 +181,10 @@ OUT = "succeed", sectionView, pixel_size, boundingBox.Min, boundingBox.Max, heig
     <Dynamo.Graph.Connectors.ConnectorModel start="d5c1fe87-270a-4c1b-9e06-f0552677a491" start_index="2" end="de398f19-9dda-4448-b260-d97475bc1588" end_index="2" portType="0" />
     <Dynamo.Graph.Connectors.ConnectorModel start="d5c1fe87-270a-4c1b-9e06-f0552677a491" start_index="3" end="de398f19-9dda-4448-b260-d97475bc1588" end_index="3" portType="0" />
     <Dynamo.Graph.Connectors.ConnectorModel start="d5c1fe87-270a-4c1b-9e06-f0552677a491" start_index="4" end="de398f19-9dda-4448-b260-d97475bc1588" end_index="4" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="d5c1fe87-270a-4c1b-9e06-f0552677a491" start_index="5" end="de398f19-9dda-4448-b260-d97475bc1588" end_index="5" portType="0" />
   </Connectors>
   <Notes>
-    <Dynamo.Graph.Notes.NoteModel guid="1f7ed75c-d75a-48b6-ad1d-3087eb4cd3ec" text="para1: image export directory&#xD;&#xA;para2: scale: digit vs. print&#xD;&#xA;para3: ScopeBox name&#xD;&#xA;para4: ViewTemplate name&#xD;&#xA;para5: delete temporary DetailView afterward" x="1019.67684410681" y="-62.4792296066348" />
+    <Dynamo.Graph.Notes.NoteModel guid="1f7ed75c-d75a-48b6-ad1d-3087eb4cd3ec" text="para1: image export directory&#xD;&#xA;para2: scale: digit vs. print&#xD;&#xA;para3: ppi&#xD;&#xA;para4: ScopeBox name&#xD;&#xA;para5: ViewTemplate name&#xD;&#xA;para6: delete temporary DetailView afterward" x="1019.67684410681" y="-62.4792296066348" />
   </Notes>
   <Annotations />
   <Presets />

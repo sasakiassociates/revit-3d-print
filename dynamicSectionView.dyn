@@ -78,21 +78,8 @@ def update_view(doc, view, voxel_size):
 	TransactionManager.Instance.TransactionTaskDone()
 	return sectionView, height
 	
-
-def export_view_images(viewIds, path, pixel_size, doc):
-	TransactionManager.Instance.EnsureInTransaction(doc)
-	ieo = ImageExportOptions()
-	ieo.ExportRange = ExportRange.SetOfViews
-	ieo.SetViewsAndSheets(viewIds)
-	ieo.FilePath = path
-	ieo.HLRandWFViewsFileType = ImageFileType.PNG
-	ieo.ShadowViewsFileType = ImageFileType.PNG
-	ieo.PixelSize = pixel_size
-	doc.ExportImage(ieo)
-	TransactionManager.Instance.TransactionTaskDone()
 	
-	
-def export_view_image(view, path, pixel_size, doc):
+def export_view_image(view, path, image_width, doc):
 	TransactionManager.Instance.EnsureInTransaction(doc)
 	ieo = ImageExportOptions()
 	ieo.ExportRange = ExportRange.SetOfViews
@@ -100,7 +87,7 @@ def export_view_image(view, path, pixel_size, doc):
 	ieo.FilePath = path	
 	ieo.HLRandWFViewsFileType = ImageFileType.PNG
 	ieo.ShadowViewsFileType = ImageFileType.PNG
-	ieo.PixelSize = pixel_size
+	ieo.PixelSize = image_width
 	doc.ExportImage(ieo)
 	TransactionManager.Instance.TransactionTaskDone()
 	
@@ -134,7 +121,7 @@ def get_scopeBox(name):
 
 
 filePath = IN[0]
-voxel_size = IN[1]
+scale = IN[1]
 scopeBox_name = IN[2]
 viewTemplateName = IN[3]
 is_delete = IN[4]
@@ -142,47 +129,52 @@ is_delete = IN[4]
 doc = DocumentManager.Instance.CurrentDBDocument
 scopeBox = get_scopeBox(scopeBox_name)
 
-try:
-	count = -1
-	heights = []
+#try:
+count = -1
+heights = []
+
+viewFamilyTypeId = get_ViewFamilyTypeId("Detail View")
+boundingBox = scopeBox.get_BoundingBox(None) # https://github.com/DynamoDS/DynamoRevit/blob/Revit2015/src/Libraries/RevitNodes/Elements/Element.cs
+
+voxel_size = 1  # feet to inch, scale has been set to DetailView
+image_width = (boundingBox.Max.X - boundingBox.Min.X) * 12.0 / scale  # feet to inch
+OUT = image_width
+return
+
+
+bottom = boundingBox.Min.Z
+top = boundingBox.Max.Z
+height = bottom
+digit = len(str(int((top - bottom) / voxel_size))) 	
+
+sectionView = create_view(doc, viewFamilyTypeId, boundingBox, voxel_size)
+apply_viewTemplate(doc, sectionView, viewTemplateName)
+
+while height &lt; top:
+	# if count &gt; 5:  # TEMP for test
+	# 	break
+
+	heights.append(height)
+
+	height += voxel_size	
+	update_view(doc, sectionView, voxel_size)
 	
-	viewFamilyTypeId = get_ViewFamilyTypeId("Detail View")
-	boundingBox = scopeBox.get_BoundingBox(None) # https://github.com/DynamoDS/DynamoRevit/blob/Revit2015/src/Libraries/RevitNodes/Elements/Element.cs
+	imageName = filePath + "\\" + str(count).rjust(digit)
+	export_view_image(sectionView, imageName, image_width, doc)
 	
-	bottom = boundingBox.Min.Z
-	top = boundingBox.Max.Z
-	height = bottom
-	digit = len(str(int((top - bottom) / voxel_size))) 
-	pixel_size = (boundingBox.Max.X - boundingBox.Min.X) * 12 * voxel_size  # TODO: identical to 3D printer
+	count += 1
 	
-	sectionView = create_view(doc, viewFamilyTypeId, boundingBox, voxel_size)
-	apply_viewTemplate(doc, sectionView, viewTemplateName)
+if is_delete:
+	delete_views(doc, [sectionView])
 	
-	while height &lt; top:
-		# if count &gt; 5:  # TEMP for test
-		# 	break
-	
-		heights.append(height)
-	
-		height += voxel_size	
-		update_view(doc, sectionView, voxel_size)
+TransactionManager.Instance.ForceCloseTransaction()  # Dynamo transaction force close order
 		
-		imageName = filePath + "\\" + str(count).rjust(digit)
-		export_view_image(sectionView, imageName, pixel_size, doc)
-		
-		count += 1
-		
-	if is_delete:
-		delete_views(doc, [sectionView])
-		
-	TransactionManager.Instance.ForceCloseTransaction()  # Dynamo transaction force close order
-			
-	OUT = "succeed", sectionView, pixel_size, boundingBox.Min, boundingBox.Max, heights
-except Exception as e:
-	OUT =  "failed", e
+OUT = "succeed", sectionView, pixel_size, boundingBox.Min, boundingBox.Max, heights
+#except Exception as e:
+#	OUT =  "failed", e
 </Script>
     </PythonNodeModels.PythonNode>
-    <Dynamo.Graph.Nodes.CodeBlockNodeModel guid="d5c1fe87-270a-4c1b-9e06-f0552677a491" type="Dynamo.Graph.Nodes.CodeBlockNodeModel" nickname="Code Block" x="1015.32793468879" y="48.4726671624691" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" CodeText="&quot;C:\Dynamo\\test\ViewRange\\test_views\\slice&quot;;&#xA;1;&#xA;&quot;Scope Box 3&quot;;&#xA;&quot;3d Print&quot;;&#xA;false;" ShouldFocus="false" />
+    <Dynamo.Graph.Nodes.CodeBlockNodeModel guid="d5c1fe87-270a-4c1b-9e06-f0552677a491" type="Dynamo.Graph.Nodes.CodeBlockNodeModel" nickname="Code Block" x="1027.20096471883" y="45.5044096549602" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" CodeText="&quot;C:\Dynamo\\test\ViewRange\\test_views\\slice&quot;;&#xA;10;&#xA;&quot;Scope Box 3&quot;;&#xA;&quot;3d Print&quot;;&#xA;false;" ShouldFocus="false" />
   </Elements>
   <Connectors>
     <Dynamo.Graph.Connectors.ConnectorModel start="d5c1fe87-270a-4c1b-9e06-f0552677a491" start_index="0" end="de398f19-9dda-4448-b260-d97475bc1588" end_index="0" portType="0" />
@@ -192,7 +184,7 @@ except Exception as e:
     <Dynamo.Graph.Connectors.ConnectorModel start="d5c1fe87-270a-4c1b-9e06-f0552677a491" start_index="4" end="de398f19-9dda-4448-b260-d97475bc1588" end_index="4" portType="0" />
   </Connectors>
   <Notes>
-    <Dynamo.Graph.Notes.NoteModel guid="1f7ed75c-d75a-48b6-ad1d-3087eb4cd3ec" text="para1: image export directory&#xD;&#xA;para2: voxel size&#xD;&#xA;para3: ScopeBox name&#xD;&#xA;para4: ViewTemplate name&#xD;&#xA;para5: delete temporary DetailView afterward" x="1019.67684410681" y="-62.4792296066348" />
+    <Dynamo.Graph.Notes.NoteModel guid="1f7ed75c-d75a-48b6-ad1d-3087eb4cd3ec" text="para1: image export directory&#xD;&#xA;para2: scale: digit vs. print&#xD;&#xA;para3: ScopeBox name&#xD;&#xA;para4: ViewTemplate name&#xD;&#xA;para5: delete temporary DetailView afterward" x="1019.67684410681" y="-62.4792296066348" />
   </Notes>
   <Annotations />
   <Presets />

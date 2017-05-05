@@ -136,46 +136,46 @@ is_delete = IN[5]
 doc = DocumentManager.Instance.CurrentDBDocument
 scopeBox = get_scopeBox(scopeBox_name)
 
-#try:
-count = -1
-heights = []
+try:
+	count = -1
+	heights = []
 
-viewFamilyTypeId = get_ViewFamilyTypeId("Detail View")
-boundingBox = scopeBox.get_BoundingBox(None) # https://github.com/DynamoDS/DynamoRevit/blob/Revit2015/src/Libraries/RevitNodes/Elements/Element.cs
+	viewFamilyTypeId = get_ViewFamilyTypeId("Detail View")
+	boundingBox = scopeBox.get_BoundingBox(None) # https://github.com/DynamoDS/DynamoRevit/blob/Revit2015/src/Libraries/RevitNodes/Elements/Element.cs
 
-voxel_size = scale / ppi
-image_width = (boundingBox.Max.X - boundingBox.Min.X) * 12 / scale * ppi # feet to inch
+	voxel_size = scale / ppi
+	image_width = (boundingBox.Max.X - boundingBox.Min.X) * 12 / scale * ppi # feet to inch
 
-bottom = boundingBox.Min.Z
-top = boundingBox.Max.Z
-height = bottom
-digit = len(str(int((top - bottom) / voxel_size))) 	
+	bottom = boundingBox.Min.Z
+	top = boundingBox.Max.Z
+	height = bottom
+	digit = len(str(int((top - bottom) / voxel_size))) 	
 
-sectionView = create_view(doc, viewFamilyTypeId, boundingBox, voxel_size)
-apply_viewTemplate(doc, sectionView, viewTemplateName)
+	sectionView = create_view(doc, viewFamilyTypeId, boundingBox, voxel_size)
+	apply_viewTemplate(doc, sectionView, viewTemplateName)
 
-while height &lt; top:
-	if count &gt; 5:  # TEMP for test
-		break
+	while height &lt; top:
+		if count &gt; 5:  # TEMP for test
+			break
 
-	heights.append(height)
+		heights.append(height)
 
-	height += voxel_size	
-	update_view(doc, sectionView, voxel_size)
-	
-	imageName = filePath + "\\" + str(count).rjust(digit)
-	export_view_image(sectionView, imageName, image_width, doc)
-	
-	count += 1
-	
-if is_delete:
-	delete_views(doc, [sectionView])
-	
-TransactionManager.Instance.ForceCloseTransaction()  # Dynamo transaction force close order
+		height += voxel_size	
+		update_view(doc, sectionView, voxel_size)
+		
+		imageName = filePath + "\\" + str(count).rjust(digit)
+		export_view_image(sectionView, imageName, image_width, doc)
+		
+		count += 1
+		
+	if is_delete:
+		delete_views(doc, [sectionView])
+		
+	TransactionManager.Instance.ForceCloseTransaction()  # Dynamo transaction force close order
 		
 OUT = "succeed", sectionView, image_width, boundingBox.Min, boundingBox.Max, heights
-#except Exception as e:
-#	OUT =  "failed", e
+except Exception as e:
+	OUT =  "failed", e
 </Script>
     </PythonNodeModels.PythonNode>
     <Dynamo.Graph.Nodes.CodeBlockNodeModel guid="d5c1fe87-270a-4c1b-9e06-f0552677a491" type="Dynamo.Graph.Nodes.CodeBlockNodeModel" nickname="Code Block" x="1027.20096471883" y="45.5044096549602" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" CodeText="&quot;C:\Dynamo\\test\ViewRange\\test_views\\slice&quot;;&#xA;100;&#xA;100;&#xA;&quot;3D Print&quot;;&#xA;&quot;3d Print&quot;;&#xA;false;" ShouldFocus="false" />

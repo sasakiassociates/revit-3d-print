@@ -61,10 +61,15 @@ def create_view(doc, viewFamilyTypeId, boundingBox, voxel_size):
 		
 		boundingBoxSlice = boundingBox
 		boundingBoxSlice.Max = XYZ(boundingBox.Max.X, boundingBox.Max.Y, boundingBox.Min.Z + voxel_size)  # adjust boundingbox for far clip offset		
-		sectionView = ViewSection.CreateDetail(doc, viewFamilyTypeId, boundingBoxSlice) # http://www.revitapidocs.com/2016/834e7154-b2f0-ffcd-b04a-9ad8cee321c8.htm			
+		sectionView = ViewSection.CreateDetail(doc, viewFamilyTypeId, boundingBoxSlice) 					
 		
 		viewId = Autodesk.Revit.DB.ElementId(int(str(sectionView.Id)) - 1)
-		axis = Line.CreateBound(XYZ(0, 0, 0), XYZ(1, 0, 0))  # flip DetailView direction
+		minY = boundingBoxSlice.Min.Y
+		maxY = boundingBoxSlice.Max.Y
+		midY = (maxY + minY) / 2
+		minX = boundingBoxSlice.Min.X
+		maxX = boundingBoxSlice.Max.X
+		axis = Line.CreateBound(XYZ(minX, midY, 0), XYZ(maxX, midY, 0))  # flip DetailView direction
 		ElementTransformUtils.RotateElement(doc, viewId, axis, math.pi)	
 		
 		TransactionManager.Instance.TransactionTaskDone()
@@ -131,49 +136,49 @@ is_delete = IN[5]
 doc = DocumentManager.Instance.CurrentDBDocument
 scopeBox = get_scopeBox(scopeBox_name)
 
-try:
-	count = -1
-	heights = []
+#try:
+count = -1
+heights = []
+
+viewFamilyTypeId = get_ViewFamilyTypeId("Detail View")
+boundingBox = scopeBox.get_BoundingBox(None) # https://github.com/DynamoDS/DynamoRevit/blob/Revit2015/src/Libraries/RevitNodes/Elements/Element.cs
+
+voxel_size = scale / ppi
+image_width = (boundingBox.Max.X - boundingBox.Min.X) * 12 / scale * ppi # feet to inch
+
+bottom = boundingBox.Min.Z
+top = boundingBox.Max.Z
+height = bottom
+digit = len(str(int((top - bottom) / voxel_size))) 	
+
+sectionView = create_view(doc, viewFamilyTypeId, boundingBox, voxel_size)
+apply_viewTemplate(doc, sectionView, viewTemplateName)
+
+while height &lt; top:
+	if count &gt; 5:  # TEMP for test
+		break
+
+	heights.append(height)
+
+	height += voxel_size	
+	update_view(doc, sectionView, voxel_size)
 	
-	viewFamilyTypeId = get_ViewFamilyTypeId("Detail View")
-	boundingBox = scopeBox.get_BoundingBox(None) # https://github.com/DynamoDS/DynamoRevit/blob/Revit2015/src/Libraries/RevitNodes/Elements/Element.cs
+	imageName = filePath + "\\" + str(count).rjust(digit)
+	export_view_image(sectionView, imageName, image_width, doc)
 	
-	voxel_size = scale / ppi
-	image_width = (boundingBox.Max.X - boundingBox.Min.X) * 12 / scale * ppi # feet to inch
+	count += 1
 	
-	bottom = boundingBox.Min.Z
-	top = boundingBox.Max.Z
-	height = bottom
-	digit = len(str(int((top - bottom) / voxel_size))) 	
+if is_delete:
+	delete_views(doc, [sectionView])
 	
-	sectionView = create_view(doc, viewFamilyTypeId, boundingBox, voxel_size)
-	apply_viewTemplate(doc, sectionView, viewTemplateName)
-	
-	while height &lt; top:
-		# if count &gt; 5:  # TEMP for test
-		# 	break
-	
-		heights.append(height)
-	
-		height += voxel_size	
-		update_view(doc, sectionView, voxel_size)
+TransactionManager.Instance.ForceCloseTransaction()  # Dynamo transaction force close order
 		
-		imageName = filePath + "\\" + str(count).rjust(digit)
-		export_view_image(sectionView, imageName, image_width, doc)
-		
-		count += 1
-		
-	if is_delete:
-		delete_views(doc, [sectionView])
-		
-	TransactionManager.Instance.ForceCloseTransaction()  # Dynamo transaction force close order
-			
-	OUT = "succeed", sectionView, image_width, boundingBox.Min, boundingBox.Max, heights
-except Exception as e:
-	OUT =  "failed", e
+OUT = "succeed", sectionView, image_width, boundingBox.Min, boundingBox.Max, heights
+#except Exception as e:
+#	OUT =  "failed", e
 </Script>
     </PythonNodeModels.PythonNode>
-    <Dynamo.Graph.Nodes.CodeBlockNodeModel guid="d5c1fe87-270a-4c1b-9e06-f0552677a491" type="Dynamo.Graph.Nodes.CodeBlockNodeModel" nickname="Code Block" x="1027.20096471883" y="45.5044096549602" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" CodeText="&quot;C:\Dynamo\\test\ViewRange\\test_views\\slice&quot;;&#xA;100;&#xA;100;&#xA;&quot;Scope Box 3&quot;;&#xA;&quot;3d Print&quot;;&#xA;false;" ShouldFocus="false" />
+    <Dynamo.Graph.Nodes.CodeBlockNodeModel guid="d5c1fe87-270a-4c1b-9e06-f0552677a491" type="Dynamo.Graph.Nodes.CodeBlockNodeModel" nickname="Code Block" x="1027.20096471883" y="45.5044096549602" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" CodeText="&quot;C:\Dynamo\\test\ViewRange\\test_views\\slice&quot;;&#xA;100;&#xA;100;&#xA;&quot;3D Print&quot;;&#xA;&quot;3d Print&quot;;&#xA;false;" ShouldFocus="false" />
   </Elements>
   <Connectors>
     <Dynamo.Graph.Connectors.ConnectorModel start="d5c1fe87-270a-4c1b-9e06-f0552677a491" start_index="0" end="de398f19-9dda-4448-b260-d97475bc1588" end_index="0" portType="0" />

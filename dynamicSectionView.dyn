@@ -1,7 +1,7 @@
-<Workspace Version="1.2.1.3083" X="-976.11594907194" Y="267.612682263987" zoom="1.01069398204528" Name="Home" Description="" RunType="Manual" RunPeriod="1000" HasRunWithoutCrash="True">
+<Workspace Version="1.2.1.3083" X="-838.11594907194" Y="361.612682263987" zoom="1.01069398204528" Name="Home" Description="" RunType="Manual" RunPeriod="1000" HasRunWithoutCrash="True">
   <NamespaceResolutionMap />
   <Elements>
-    <PythonNodeModels.PythonNode guid="de398f19-9dda-4448-b260-d97475bc1588" type="PythonNodeModels.PythonNode" nickname="DynamicSectionView:Python Script" x="1556.44183633229" y="48.3876835980456" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="true" inputcount="6">
+    <PythonNodeModels.PythonNode guid="de398f19-9dda-4448-b260-d97475bc1588" type="PythonNodeModels.PythonNode" nickname="DynamicSectionView:Python Script" x="1558.42067467063" y="48.3876835980456" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="true" inputcount="6">
       <PortInfo index="0" default="False" />
       <PortInfo index="1" default="False" />
       <PortInfo index="2" default="False" />
@@ -139,46 +139,49 @@ scopeBox = get_scopeBox(scopeBox_name)
 try:
 	count = -1
 	heights = []
-
+	
 	viewFamilyTypeId = get_ViewFamilyTypeId("Detail View")
 	boundingBox = scopeBox.get_BoundingBox(None) # https://github.com/DynamoDS/DynamoRevit/blob/Revit2015/src/Libraries/RevitNodes/Elements/Element.cs
-
-	voxel_size = scale / ppi
-	image_width = (boundingBox.Max.X - boundingBox.Min.X) * 12 / scale * ppi # feet to inch
-
-	bottom = boundingBox.Min.Z
-	top = boundingBox.Max.Z
-	height = bottom
-	digit = len(str(int((top - bottom) / voxel_size))) 	
-
-	sectionView = create_view(doc, viewFamilyTypeId, boundingBox, voxel_size)
-	apply_viewTemplate(doc, sectionView, viewTemplateName)
-
-	while height &lt; top:
-		if count &gt; 5:  # TEMP for test
-			break
-
-		heights.append(height)
-
-		height += voxel_size	
-		update_view(doc, sectionView, voxel_size)
+	
+	voxel_size = scale * 12.0 / ppi
+	image_width = (boundingBox.Max.X - boundingBox.Min.X) * 12 * ppi / (scale * 12)  # feet to inch
+	
+	if image_width &lt;= 15000:
+		bottom = boundingBox.Min.Z
+		top = boundingBox.Max.Z
+		height = bottom
+		digit = len(str(int((top - bottom) / voxel_size))) 	
 		
-		imageName = filePath + "\\" + str(count).rjust(digit)
-		export_view_image(sectionView, imageName, image_width, doc)
+		sectionView = create_view(doc, viewFamilyTypeId, boundingBox, voxel_size)
+		apply_viewTemplate(doc, sectionView, viewTemplateName)
 		
-		count += 1
+		while height &lt; top:
+			if count &gt; 2:  # TEMP for test
+				break
 		
-	if is_delete:
-		delete_views(doc, [sectionView])
+			heights.append(height)
 		
-	TransactionManager.Instance.ForceCloseTransaction()  # Dynamo transaction force close order
-		
-OUT = "succeed", sectionView, image_width, boundingBox.Min, boundingBox.Max, heights
+			height += voxel_size	
+			update_view(doc, sectionView, voxel_size)
+			
+			imageName = filePath + "\\" + str(count).rjust(digit)
+			export_view_image(sectionView, imageName, image_width, doc)
+			
+			count += 1
+			
+		if is_delete:
+			delete_views(doc, [sectionView])
+			
+		TransactionManager.Instance.ForceCloseTransaction()  # Dynamo transaction force close order
+			
+		OUT = "succeed", sectionView, image_width, boundingBox.Min, boundingBox.Max, heights
+	else:
+		OUT = "failed: image_width out of range &gt; 15000, please set ppi smaller", image_width
 except Exception as e:
 	OUT =  "failed", e
 </Script>
     </PythonNodeModels.PythonNode>
-    <Dynamo.Graph.Nodes.CodeBlockNodeModel guid="d5c1fe87-270a-4c1b-9e06-f0552677a491" type="Dynamo.Graph.Nodes.CodeBlockNodeModel" nickname="Code Block" x="1027.20096471883" y="45.5044096549602" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" CodeText="&quot;C:\Dynamo\\test\ViewRange\\test_views\\slice&quot;;&#xA;100;&#xA;100;&#xA;&quot;3D Print&quot;;&#xA;&quot;3d Print&quot;;&#xA;false;" ShouldFocus="false" />
+    <Dynamo.Graph.Nodes.CodeBlockNodeModel guid="d5c1fe87-270a-4c1b-9e06-f0552677a491" type="Dynamo.Graph.Nodes.CodeBlockNodeModel" nickname="Code Block" x="1027.20096471883" y="45.5044096549602" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" CodeText="&quot;C:\Dynamo\\test\ViewRange\\test_views\\slice&quot;;&#xA;64;&#xA;400;&#xA;&quot;3D Print&quot;;&#xA;&quot;3d Print&quot;;&#xA;false;" ShouldFocus="false" />
   </Elements>
   <Connectors>
     <Dynamo.Graph.Connectors.ConnectorModel start="d5c1fe87-270a-4c1b-9e06-f0552677a491" start_index="0" end="de398f19-9dda-4448-b260-d97475bc1588" end_index="0" portType="0" />
@@ -189,7 +192,7 @@ except Exception as e:
     <Dynamo.Graph.Connectors.ConnectorModel start="d5c1fe87-270a-4c1b-9e06-f0552677a491" start_index="5" end="de398f19-9dda-4448-b260-d97475bc1588" end_index="5" portType="0" />
   </Connectors>
   <Notes>
-    <Dynamo.Graph.Notes.NoteModel guid="1f7ed75c-d75a-48b6-ad1d-3087eb4cd3ec" text="para1: image export directory&#xD;&#xA;para2: scale: digit vs. print&#xD;&#xA;para3: ppi&#xD;&#xA;para4: ScopeBox name&#xD;&#xA;para5: ViewTemplate name&#xD;&#xA;para6: delete temporary DetailView afterward" x="1019.67684410681" y="-62.4792296066348" />
+    <Dynamo.Graph.Notes.NoteModel guid="1f7ed75c-d75a-48b6-ad1d-3087eb4cd3ec" text="para1: image export directory&#xD;&#xA;para2: scale: digit vs. print (feet)&#xD;&#xA;para3: ppi&#xD;&#xA;para4: ScopeBox name&#xD;&#xA;para5: ViewTemplate name&#xD;&#xA;para6: delete temporary DetailView afterward" x="1019.67684410681" y="-62.4792296066348" />
   </Notes>
   <Annotations />
   <Presets />

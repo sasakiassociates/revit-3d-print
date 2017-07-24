@@ -1,4 +1,4 @@
-<Workspace Version="1.2.1.3083" X="-1562.72206899673" Y="96.8431676841951" zoom="0.977881443712855" Name="Home" Description="" RunType="Manual" RunPeriod="1000" HasRunWithoutCrash="True">
+<Workspace Version="1.2.1.3083" X="-1436.72206899673" Y="74.8431676841951" zoom="0.977881443712855" Name="Home" Description="" RunType="Manual" RunPeriod="1000" HasRunWithoutCrash="True">
   <NamespaceResolutionMap />
   <Elements>
     <PythonNodeModels.PythonNode guid="de398f19-9dda-4448-b260-d97475bc1588" type="PythonNodeModels.PythonNode" nickname="DynamicSectionView:Python Script" x="1559.4100938398" y="48.3876835980456" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="true" inputcount="6">
@@ -82,7 +82,8 @@ def create_view(doc, viewFamilyTypeId, boundingBox, voxel_size):
 		midY = (maxY + minY) / 2
 		minX = boundingBoxSlice.Min.X
 		maxX = boundingBoxSlice.Max.X
-		axis = Line.CreateBound(XYZ(minX, midY, 0), XYZ(maxX, midY, 0))  # flip DetailView direction
+		minZ = boundingBoxSlice.Min.Z
+		axis = Line.CreateBound(XYZ(minX, midY, minZ), XYZ(maxX, midY, minZ))  # flip DetailView direction
 		ElementTransformUtils.RotateElement(doc, viewId, axis, math.pi)	
 		
 		TransactionManager.Instance.TransactionTaskDone()
@@ -161,7 +162,7 @@ try:
 	viewFamilyTypeId = get_ViewFamilyTypeId("Detail View")
 	boundingBox = scopeBox.get_BoundingBox(None) # https://github.com/DynamoDS/DynamoRevit/blob/Revit2015/src/Libraries/RevitNodes/Elements/Element.cs
 	
-	voxel_size = scale * 12.0 / ppi
+	voxel_size = scale * 0.833333 / ppi
 	image_width = (boundingBox.Max.X - boundingBox.Min.X) * 12 * ppi / (scale * 12)  # feet to inch
 	
 	if image_width &lt;= 15000:

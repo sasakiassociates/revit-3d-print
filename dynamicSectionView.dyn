@@ -1,4 +1,4 @@
-<Workspace Version="1.2.1.3083" X="-1436.72206899673" Y="74.8431676841951" zoom="0.977881443712855" Name="Home" Description="" RunType="Manual" RunPeriod="1000" HasRunWithoutCrash="True">
+<Workspace Version="1.2.1.3083" X="-1436.72206899673" Y="74.8431676841951" zoom="0.977881443712855" Name="Home" Description="" RunType="Manual" RunPeriod="1000" HasRunWithoutCrash="False">
   <NamespaceResolutionMap />
   <Elements>
     <PythonNodeModels.PythonNode guid="de398f19-9dda-4448-b260-d97475bc1588" type="PythonNodeModels.PythonNode" nickname="DynamicSectionView:Python Script" x="1559.4100938398" y="48.3876835980456" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="true" inputcount="6">
@@ -309,7 +309,7 @@ OUT = command</Script>
       <System.String>C:\Dynamo\Revit3DPrint\script\process_images.py</System.String>
       <System.String value="C:\Dynamo\Revit3DPrint\script\process_images.py" />
     </CoreNodeModels.Input.StringInput>
-    <CoreNodeModels.Input.StringInput guid="c49fa72e-2b49-4831-b54a-6bde39404b72" type="CoreNodeModels.Input.StringInput" nickname="String: log path" x="2185.35636077602" y="346.020725883883" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+    <CoreNodeModels.Input.StringInput guid="c49fa72e-2b49-4831-b54a-6bde39404b72" type="CoreNodeModels.Input.StringInput" nickname="String: log path" x="2183.31112307071" y="417.604045569572" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
       <System.String>C:\voxelptint.txt</System.String>
       <System.String value="C:\voxelptint.txt" />
     </CoreNodeModels.Input.StringInput>
@@ -317,7 +317,7 @@ OUT = command</Script>
       <System.String>0.0001</System.String>
       <System.String value="0.0001" />
     </CoreNodeModels.Input.StringInput>
-    <CoreNodeModels.Input.StringInput guid="7f599b7b-f639-4918-a5b3-dc3d7b3476d0" type="CoreNodeModels.Input.StringInput" nickname="String: border" x="2209.5951230988" y="412.275777301883" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+    <CoreNodeModels.Input.StringInput guid="7f599b7b-f639-4918-a5b3-dc3d7b3476d0" type="CoreNodeModels.Input.StringInput" nickname="String: border" x="2206.52726654084" y="349.896027290069" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
       <System.String>5</System.String>
       <System.String value="5" />
     </CoreNodeModels.Input.StringInput>
@@ -336,9 +336,9 @@ OUT = command</Script>
     <Dynamo.Graph.Connectors.ConnectorModel start="11674bed-bf3e-4a7f-98e0-4aa48b365eb2" start_index="0" end="62fb81f1-bcb0-4613-82dd-62dc9d67ca67" end_index="0" portType="0" />
     <Dynamo.Graph.Connectors.ConnectorModel start="11674bed-bf3e-4a7f-98e0-4aa48b365eb2" start_index="0" end="48c66b7a-d765-4c31-af97-2588749ed5d1" end_index="2" portType="0" />
     <Dynamo.Graph.Connectors.ConnectorModel start="cff46afc-49a1-4f5b-87c3-7284573648f0" start_index="0" end="48c66b7a-d765-4c31-af97-2588749ed5d1" end_index="4" portType="0" />
-    <Dynamo.Graph.Connectors.ConnectorModel start="c49fa72e-2b49-4831-b54a-6bde39404b72" start_index="0" end="48c66b7a-d765-4c31-af97-2588749ed5d1" end_index="5" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="c49fa72e-2b49-4831-b54a-6bde39404b72" start_index="0" end="48c66b7a-d765-4c31-af97-2588749ed5d1" end_index="6" portType="0" />
     <Dynamo.Graph.Connectors.ConnectorModel start="b2200556-9530-4170-b482-6c71e3203999" start_index="0" end="48c66b7a-d765-4c31-af97-2588749ed5d1" end_index="3" portType="0" />
-    <Dynamo.Graph.Connectors.ConnectorModel start="7f599b7b-f639-4918-a5b3-dc3d7b3476d0" start_index="0" end="48c66b7a-d765-4c31-af97-2588749ed5d1" end_index="6" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="7f599b7b-f639-4918-a5b3-dc3d7b3476d0" start_index="0" end="48c66b7a-d765-4c31-af97-2588749ed5d1" end_index="5" portType="0" />
   </Connectors>
   <Notes>
     <Dynamo.Graph.Notes.NoteModel guid="1f7ed75c-d75a-48b6-ad1d-3087eb4cd3ec" text="para1: image export directory&#xD;&#xA;para2: scale: digit vs. print (feet)&#xD;&#xA;para3: ppi&#xD;&#xA;para4: ScopeBox name&#xD;&#xA;para5: ViewTemplate name&#xD;&#xA;para6: delete temporary DetailView afterward" x="1017.6791164025" y="-62.4792296066348" />
@@ -348,7 +348,7 @@ OUT = command</Script>
       <Models ModelGuid="d5c1fe87-270a-4c1b-9e06-f0552677a491" />
       <Models ModelGuid="1f7ed75c-d75a-48b6-ad1d-3087eb4cd3ec" />
     </Dynamo.Graph.Annotations.AnnotationModel>
-    <Dynamo.Graph.Annotations.AnnotationModel guid="abf39d85-f686-4d86-8146-ed7d23e8ce02" annotationText="input 2" left="2081.09596486175" top="172.407714814535" width="230.499158237047" height="307.868062487348" fontSize="14" InitialTop="202.407714814535" InitialHeight="238.616419512883" TextblockHeight="20" backgrouund="#FFC1D676">
+    <Dynamo.Graph.Annotations.AnnotationModel guid="abf39d85-f686-4d86-8146-ed7d23e8ce02" annotationText="input 2" left="2081.09596486175" top="172.407714814535" width="227.43130167909" height="313.196330755037" fontSize="14" InitialTop="202.407714814535" InitialHeight="238.616419512883" TextblockHeight="20" backgrouund="#FFC1D676">
       <Models ModelGuid="cff46afc-49a1-4f5b-87c3-7284573648f0" />
       <Models ModelGuid="c49fa72e-2b49-4831-b54a-6bde39404b72" />
       <Models ModelGuid="b2200556-9530-4170-b482-6c71e3203999" />

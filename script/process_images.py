@@ -65,21 +65,21 @@ def invert_images(image_folder):
 
 def create_xml(folder_name, digits, gridSizeX, gridSizeY, gridSizeZ, voxelSize):
 	grid = ET.Element("grid")
-	channels = ET.SubElement(grid, "channels")
-	channels.set("gridSizeX", str(gridSizeX))
-	channels.set("gridSizeY", str(gridSizeY))
-	channels.set("gridSizeZ", str(gridSizeZ))
-	channels.set("voxelSize", str(voxelSize))
-	channels.set("subvoxelBits", "8")
-	channels.set("originX", "0")
-	channels.set("originY", "0")
-	channels.set("slicesOrientation", "Y")
-	channels.set("originZ", "0")
+	grid.set("gridSizeX", str(gridSizeX))
+	grid.set("gridSizeY", str(gridSizeY))
+	grid.set("gridSizeZ", str(gridSizeZ))
+	grid.set("voxelSize", str(voxelSize))
+	grid.set("subvoxelBits", "8")
+	grid.set("originX", "0")
+	grid.set("originY", "0")
+	grid.set("slicesOrientation", "Y")
+	grid.set("originZ", "0")
 
+	channels = ET.SubElement(grid, "channels")
 	channel = ET.SubElement(channels, "channel")
 	channel.set("type", "DENSITY")
 	channel.set("bits", "8")
-	channel.set("slices", "invert/%" + str(digits) + "d.png")
+	channel.set("slices", "invert/%0" + str(digits) + "d.png")
 
 	tree = ET.ElementTree(grid)
 	tree.write(os.path.join(folder_name, "manifest.xml"))
@@ -109,7 +109,7 @@ create_blank_image(origin_image_folder, width, height, end_image_name)
 
 crop_images(origin_image_folder, int(border))
 invert_images(image_folder)
-create_xml(image_folder, digits, width, height, count, voxelSize)  # todo: match x, y, z order
+create_xml(image_folder, digits, width, count + 2, height, voxelSize)
 create_zip(image_folder)
 print("done")
 

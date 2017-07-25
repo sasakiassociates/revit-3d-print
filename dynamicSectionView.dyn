@@ -1,4 +1,4 @@
-<Workspace Version="1.2.1.3083" X="-1436.72206899673" Y="74.8431676841951" zoom="0.977881443712855" Name="Home" Description="" RunType="Manual" RunPeriod="1000" HasRunWithoutCrash="False">
+<Workspace Version="1.2.1.3083" X="-1436.72206899673" Y="74.8431676841951" zoom="0.977881443712855" Name="Home" Description="" RunType="Manual" RunPeriod="1000" HasRunWithoutCrash="True">
   <NamespaceResolutionMap />
   <Elements>
     <PythonNodeModels.PythonNode guid="de398f19-9dda-4448-b260-d97475bc1588" type="PythonNodeModels.PythonNode" nickname="DynamicSectionView:Python Script" x="1559.4100938398" y="48.3876835980456" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="true" inputcount="6">

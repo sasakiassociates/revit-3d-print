@@ -86,8 +86,8 @@ def create_xml(folder_name, digits, gridSizeX, gridSizeY, gridSizeZ, voxelSize):
 
 
 def create_zip(folder_name):
-	file_name = 'model.svx'
-	zip_file = zipfile.ZipFile(os.path.join(folder_name, file_name), 'w', zipfile.ZIP_DEFLATED)
+	file_name = 'model.zip'
+	zip_file = zipfile.ZipFile(os.path.join(folder_name, "model.svx"), 'w', zipfile.ZIP_DEFLATED)
 	zip_file.write(os.path.join(folder_name, "manifest.xml"), "manifest.xml", compress_type=zipfile.ZIP_DEFLATED)
 	for f_name in os.listdir(os.path.join(folder_name, "invert\\")):
 		full_file_path = os.path.join(folder_name, "invert\\" + f_name)
@@ -109,7 +109,7 @@ create_blank_image(origin_image_folder, width, height, end_image_name)
 
 crop_images(origin_image_folder, int(border))
 invert_images(image_folder)
-create_xml(image_folder, digits, width, count + 2, height, voxelSize)
+create_xml(image_folder, digits, str(width + int(border) * 2), str(count + 2), str(height + int(border) * 2), voxelSize)  # todo: match x, y, z order
 create_zip(image_folder)
 print("done")
 

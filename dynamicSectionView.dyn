@@ -1,13 +1,15 @@
-<Workspace Version="1.2.1.3083" X="-1436.72206899673" Y="74.8431676841951" zoom="0.977881443712855" Name="Home" Description="" RunType="Manual" RunPeriod="1000" HasRunWithoutCrash="True">
-  <NamespaceResolutionMap />
+<Workspace Version="1.3.0.875" X="-509.46137052646" Y="439.80110456162" zoom="0.556745606434572" ScaleFactor="1" Name="Home" Description="" RunType="Manual" RunPeriod="1000" HasRunWithoutCrash="True">
+  <NamespaceResolutionMap>
+    <ClassMap partialName="BoundingBox.Max" resolvedName="Autodesk.DesignScript.Geometry.BoundingBox" assemblyName="ProtoGeometry.dll" />
+    <ClassMap partialName="BoundingBox.Min" resolvedName="Autodesk.DesignScript.Geometry.BoundingBox" assemblyName="ProtoGeometry.dll" />
+  </NamespaceResolutionMap>
   <Elements>
-    <PythonNodeModels.PythonNode guid="de398f19-9dda-4448-b260-d97475bc1588" type="PythonNodeModels.PythonNode" nickname="DynamicSectionView:Python Script" x="1559.4100938398" y="48.3876835980456" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="true" inputcount="6">
+    <PythonNodeModels.PythonNode guid="de398f19-9dda-4448-b260-d97475bc1588" type="PythonNodeModels.PythonNode" nickname="DynamicSectionView:Python Script" x="1533.50905180414" y="96.65780739177" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="true" inputcount="5">
       <PortInfo index="0" default="False" />
       <PortInfo index="1" default="False" />
       <PortInfo index="2" default="False" />
       <PortInfo index="3" default="False" />
       <PortInfo index="4" default="False" />
-      <PortInfo index="5" default="False" />
       <Script>import clr
 clr.AddReference('ProtoGeometry')
 from Autodesk.DesignScript.Geometry import *
@@ -142,11 +144,10 @@ def get_scopeBox(name):
 
 
 filePath = IN[0]
-scale = IN[1]
-ppi = IN[2]
-scopeBox_name = IN[3]
-viewTemplateName = IN[4]
-is_delete = IN[5]
+slices = IN[1] * 12
+scopeBox_name = IN[2]
+viewTemplateName = IN[3]
+is_delete = IN[4]
 
 clean_up(filePath)
 
@@ -162,9 +163,9 @@ try:
 	viewFamilyTypeId = get_ViewFamilyTypeId("Detail View")
 	boundingBox = scopeBox.get_BoundingBox(None) # https://github.com/DynamoDS/DynamoRevit/blob/Revit2015/src/Libraries/RevitNodes/Elements/Element.cs
 	
-	voxel_size = scale * 0.833333 / ppi
-	image_width = (boundingBox.Max.X - boundingBox.Min.X) * 12 * ppi / (scale * 12)  # feet to inch
-	
+	voxel_size = (boundingBox.Max.Z - boundingBox.Min.Z) / slices * 12 # feet to inch
+	image_width = ((boundingBox.Max.X - boundingBox.Min.X)  / voxel_size) * 0.75
+		
 	if image_width &lt;= 15000:
 		bottom = boundingBox.Min.Z
 		top = boundingBox.Max.Z
@@ -175,7 +176,7 @@ try:
 		apply_viewTemplate(doc, sectionView, viewTemplateName)
 		
 		while height &lt; top:
-			if count &gt; 2:  # TEMP for test
+			if count &gt; 100:  # TEMP for test
 				break
 		
 			heights.append(height)
@@ -196,15 +197,14 @@ try:
 			
 		TransactionManager.Instance.ForceCloseTransaction()  # Dynamo transaction force close order
 			
-		OUT = "succeed", digit, sectionView, image_width, boundingBox.Min, boundingBox.Max, heights
+		OUT = "success", digit, sectionView, image_width, str(voxel_size * 12) + " in" # other outputs:  boundingBox.Min, boundingBox.Max, heights
 	else:
-		OUT = "failed: image_width out of range &gt; 15000, please set ppi smaller", image_width
+		OUT = "failed: image_width out of range &gt; 15000, please set larger # of slices", image_width
 except Exception as e:
-	OUT =  "failed", e
-</Script>
+	OUT =  "failed", e</Script>
     </PythonNodeModels.PythonNode>
-    <Dynamo.Graph.Nodes.CodeBlockNodeModel guid="d5c1fe87-270a-4c1b-9e06-f0552677a491" type="Dynamo.Graph.Nodes.CodeBlockNodeModel" nickname="Code Block" x="1019.21005390159" y="46.5032735071154" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" CodeText="&quot;C:\\Dynamo\\Revit3DPrint\\image&quot;;&#xA;64;&#xA;400;&#xA;&quot;3D Print&quot;;&#xA;&quot;3d Print&quot;;&#xA;false;" ShouldFocus="false" />
-    <PythonNodeModels.PythonNode guid="62fb81f1-bcb0-4613-82dd-62dc9d67ca67" type="PythonNodeModels.PythonNode" nickname="Rename Images:Python Script" x="1965.43339185274" y="48.9061825664717" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="2">
+    <Dynamo.Graph.Nodes.CodeBlockNodeModel guid="d5c1fe87-270a-4c1b-9e06-f0552677a491" type="Dynamo.Graph.Nodes.CodeBlockNodeModel" nickname="Code Block" x="1043.93377584472" y="7.65171045363002" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" CodeText="&quot;C:\\Dynamo\\revit-3d-print\\image&quot;;&#xA;560;&#xA;&quot;3D Print&quot;;&#xA;&quot;3D Print&quot;;&#xA;false;" ShouldFocus="false" />
+    <PythonNodeModels.PythonNode guid="62fb81f1-bcb0-4613-82dd-62dc9d67ca67" type="PythonNodeModels.PythonNode" nickname="Rename Images:Python Script" x="1938.77735804184" y="-22.4593006877406" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="2">
       <PortInfo index="0" default="False" />
       <PortInfo index="1" default="False" />
       <Script>import clr
@@ -251,10 +251,10 @@ for f_name in os.listdir(path):
     
 OUT = new_filenames</Script>
     </PythonNodeModels.PythonNode>
-    <Dynamo.Graph.Nodes.CodeBlockNodeModel guid="11674bed-bf3e-4a7f-98e0-4aa48b365eb2" type="Dynamo.Graph.Nodes.CodeBlockNodeModel" nickname="Code Block" x="1827.06888688693" y="50.1692932932856" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" CodeText="x[1];" ShouldFocus="false">
+    <Dynamo.Graph.Nodes.CodeBlockNodeModel guid="11674bed-bf3e-4a7f-98e0-4aa48b365eb2" type="Dynamo.Graph.Nodes.CodeBlockNodeModel" nickname="Code Block" x="1791.64392306725" y="101.181241193622" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" CodeText="x[1];" ShouldFocus="false">
       <PortInfo index="0" default="False" />
     </Dynamo.Graph.Nodes.CodeBlockNodeModel>
-    <PythonNodeModels.PythonNode guid="48c66b7a-d765-4c31-af97-2588749ed5d1" type="PythonNodeModels.PythonNode" nickname="Invert Images:Python Script" x="2374.60943104745" y="73.7796254375644" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="true" inputcount="7">
+    <PythonNodeModels.PythonNode guid="48c66b7a-d765-4c31-af97-2588749ed5d1" type="PythonNodeModels.PythonNode" nickname="Invert Images:Python Script" x="2463.88033987304" y="52.5246471457576" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="true" inputcount="7">
       <PortInfo index="0" default="False" />
       <PortInfo index="1" default="False" />
       <PortInfo index="2" default="False" />
@@ -305,50 +305,117 @@ command = "python " + script_path + " \"" + image_path + "\\\\\" " + str(digits)
 os.system(command)
 OUT = command</Script>
     </PythonNodeModels.PythonNode>
-    <CoreNodeModels.Input.StringInput guid="cff46afc-49a1-4f5b-87c3-7284573648f0" type="CoreNodeModels.Input.StringInput" nickname="String: external python script path" x="2091.09596486175" y="269.246135701678" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
-      <System.String>C:\Dynamo\Revit3DPrint\script\process_images.py</System.String>
-      <System.String value="C:\Dynamo\Revit3DPrint\script\process_images.py" />
+    <CoreNodeModels.Input.StringInput guid="cff46afc-49a1-4f5b-87c3-7284573648f0" type="CoreNodeModels.Input.StringInput" nickname="String: external python script path" x="2115.18494025913" y="273.692321255779" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <System.String>C:\Dynamo\revit-3d-print\script\process_images.py</System.String>
+      <System.String value="C:\Dynamo\revit-3d-print\script\process_images.py" />
     </CoreNodeModels.Input.StringInput>
-    <CoreNodeModels.Input.StringInput guid="c49fa72e-2b49-4831-b54a-6bde39404b72" type="CoreNodeModels.Input.StringInput" nickname="String: log path" x="2183.31112307071" y="417.604045569572" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+    <CoreNodeModels.Input.StringInput guid="c49fa72e-2b49-4831-b54a-6bde39404b72" type="CoreNodeModels.Input.StringInput" nickname="String: log path" x="2207.40009846809" y="422.050231123673" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
       <System.String>C:\voxelptint.txt</System.String>
       <System.String value="C:\voxelptint.txt" />
     </CoreNodeModels.Input.StringInput>
-    <CoreNodeModels.Input.StringInput guid="b2200556-9530-4170-b482-6c71e3203999" type="CoreNodeModels.Input.StringInput" nickname="String: voxel size" x="2192.33560339675" y="202.407714814535" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+    <CoreNodeModels.Input.StringInput guid="b2200556-9530-4170-b482-6c71e3203999" type="CoreNodeModels.Input.StringInput" nickname="String: voxel size" x="2216.42457879413" y="206.853900368636" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
       <System.String>0.0001</System.String>
       <System.String value="0.0001" />
     </CoreNodeModels.Input.StringInput>
-    <CoreNodeModels.Input.StringInput guid="7f599b7b-f639-4918-a5b3-dc3d7b3476d0" type="CoreNodeModels.Input.StringInput" nickname="String: border" x="2206.52726654084" y="349.896027290069" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+    <CoreNodeModels.Input.StringInput guid="7f599b7b-f639-4918-a5b3-dc3d7b3476d0" type="CoreNodeModels.Input.StringInput" nickname="String: border" x="2230.61624193822" y="354.34221284417" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
       <System.String>5</System.String>
       <System.String value="5" />
     </CoreNodeModels.Input.StringInput>
+    <PythonNodeModels.PythonNode guid="a36f99b2-413e-4d98-8fd7-ccd8358ec16d" type="PythonNodeModels.PythonNode" nickname="Slice Height:Python Script" x="1556.13441021393" y="-164.323070008839" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="true" inputcount="2">
+      <PortInfo index="0" default="False" />
+      <PortInfo index="1" default="False" />
+      <Script>import clr
+clr.AddReference('ProtoGeometry')
+from Autodesk.DesignScript.Geometry import *
+
+# Import Element wrapper extension methods
+clr.AddReference('RevitNodes')
+import Revit
+clr.ImportExtensions(Revit.Elements)
+
+# Import geometry conversion extension methods
+clr.ImportExtensions(Revit.GeometryConversion)
+
+# Import DocumentManager and TransactionManager
+clr.AddReference('RevitServices')
+import RevitServices
+from RevitServices.Persistence import DocumentManager
+from RevitServices.Transactions import TransactionManager
+
+# Import RevitAPI
+clr.AddReference('RevitAPI')
+import Autodesk
+from Autodesk.Revit.DB import *
+from Autodesk.Revit.DB import FilteredElementCollector as _FilteredElementCollector
+from Autodesk.Revit.DB import ViewFamilyType as _ViewFamilyType
+
+import System
+from System import Array
+from System.Collections.Generic import *
+import sys
+sys.path.append("C:\Program Files (x86)\IronPython 2.7\Lib")
+import os
+import math
+import shutil
+			
+def get_scopeBox(name):
+	collector = FilteredElementCollector(doc)
+	elements = collector.OfCategory(BuiltInCategory.OST_VolumeOfInterest).ToElements()
+	for element in elements:
+		if element.Name == name:
+			return element
+
+slice = IN[0]
+scopeBox_name = IN[1]
+
+doc = DocumentManager.Instance.CurrentDBDocument
+scopeBox = get_scopeBox(scopeBox_name)
+boundingBox = scopeBox.get_BoundingBox(None) # https://github.com/DynamoDS/DynamoRevit/blob/Revit2015/src/Libraries/RevitNodes/Elements/Element.cs
+voxel_size = (boundingBox.Max.Z - boundingBox.Min.Z) * 12 / slice  
+				
+OUT = voxel_size
+</Script>
+    </PythonNodeModels.PythonNode>
+    <Dynamo.Graph.Nodes.CodeBlockNodeModel guid="0f93f4a3-141e-4cf0-954e-02c991396921" type="Dynamo.Graph.Nodes.CodeBlockNodeModel" nickname="Code Block" x="1557.45600073201" y="-259.540330260797" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" CodeText="(1/16)/12*0.0254;" ShouldFocus="false" />
+    <Dynamo.Graph.Nodes.ZeroTouch.DSFunction guid="4e90dac5-df84-4b4a-9d7a-799c5dae0b85" type="Dynamo.Graph.Nodes.ZeroTouch.DSFunction" nickname="*" x="1753.73657627672" y="-218.237167169226" isVisible="true" isUpstreamVisible="true" lacing="Shortest" isSelectedInput="False" IsFrozen="false" isPinned="false" assembly="Operators" function="*@var[]..[],var[]..[]">
+      <PortInfo index="0" default="False" />
+      <PortInfo index="1" default="False" />
+    </Dynamo.Graph.Nodes.ZeroTouch.DSFunction>
+    <CoreNodeModels.FromObject guid="078e7bb8-60fa-42ec-94fe-9819852c22c8" type="CoreNodeModels.FromObject" nickname="String from Object" x="2022.90060470789" y="-190.523446477072" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+    </CoreNodeModels.FromObject>
   </Elements>
   <Connectors>
     <Dynamo.Graph.Connectors.ConnectorModel start="de398f19-9dda-4448-b260-d97475bc1588" start_index="0" end="11674bed-bf3e-4a7f-98e0-4aa48b365eb2" end_index="0" portType="0" />
     <Dynamo.Graph.Connectors.ConnectorModel start="d5c1fe87-270a-4c1b-9e06-f0552677a491" start_index="0" end="de398f19-9dda-4448-b260-d97475bc1588" end_index="0" portType="0" />
-    <Dynamo.Graph.Connectors.ConnectorModel start="d5c1fe87-270a-4c1b-9e06-f0552677a491" start_index="0" end="62fb81f1-bcb0-4613-82dd-62dc9d67ca67" end_index="1" portType="0" />
     <Dynamo.Graph.Connectors.ConnectorModel start="d5c1fe87-270a-4c1b-9e06-f0552677a491" start_index="0" end="48c66b7a-d765-4c31-af97-2588749ed5d1" end_index="1" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="d5c1fe87-270a-4c1b-9e06-f0552677a491" start_index="0" end="62fb81f1-bcb0-4613-82dd-62dc9d67ca67" end_index="1" portType="0" />
     <Dynamo.Graph.Connectors.ConnectorModel start="d5c1fe87-270a-4c1b-9e06-f0552677a491" start_index="1" end="de398f19-9dda-4448-b260-d97475bc1588" end_index="1" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="d5c1fe87-270a-4c1b-9e06-f0552677a491" start_index="1" end="a36f99b2-413e-4d98-8fd7-ccd8358ec16d" end_index="0" portType="0" />
     <Dynamo.Graph.Connectors.ConnectorModel start="d5c1fe87-270a-4c1b-9e06-f0552677a491" start_index="2" end="de398f19-9dda-4448-b260-d97475bc1588" end_index="2" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="d5c1fe87-270a-4c1b-9e06-f0552677a491" start_index="2" end="a36f99b2-413e-4d98-8fd7-ccd8358ec16d" end_index="1" portType="0" />
     <Dynamo.Graph.Connectors.ConnectorModel start="d5c1fe87-270a-4c1b-9e06-f0552677a491" start_index="3" end="de398f19-9dda-4448-b260-d97475bc1588" end_index="3" portType="0" />
     <Dynamo.Graph.Connectors.ConnectorModel start="d5c1fe87-270a-4c1b-9e06-f0552677a491" start_index="4" end="de398f19-9dda-4448-b260-d97475bc1588" end_index="4" portType="0" />
-    <Dynamo.Graph.Connectors.ConnectorModel start="d5c1fe87-270a-4c1b-9e06-f0552677a491" start_index="5" end="de398f19-9dda-4448-b260-d97475bc1588" end_index="5" portType="0" />
     <Dynamo.Graph.Connectors.ConnectorModel start="62fb81f1-bcb0-4613-82dd-62dc9d67ca67" start_index="0" end="48c66b7a-d765-4c31-af97-2588749ed5d1" end_index="0" portType="0" />
     <Dynamo.Graph.Connectors.ConnectorModel start="11674bed-bf3e-4a7f-98e0-4aa48b365eb2" start_index="0" end="62fb81f1-bcb0-4613-82dd-62dc9d67ca67" end_index="0" portType="0" />
     <Dynamo.Graph.Connectors.ConnectorModel start="11674bed-bf3e-4a7f-98e0-4aa48b365eb2" start_index="0" end="48c66b7a-d765-4c31-af97-2588749ed5d1" end_index="2" portType="0" />
     <Dynamo.Graph.Connectors.ConnectorModel start="cff46afc-49a1-4f5b-87c3-7284573648f0" start_index="0" end="48c66b7a-d765-4c31-af97-2588749ed5d1" end_index="4" portType="0" />
     <Dynamo.Graph.Connectors.ConnectorModel start="c49fa72e-2b49-4831-b54a-6bde39404b72" start_index="0" end="48c66b7a-d765-4c31-af97-2588749ed5d1" end_index="6" portType="0" />
-    <Dynamo.Graph.Connectors.ConnectorModel start="b2200556-9530-4170-b482-6c71e3203999" start_index="0" end="48c66b7a-d765-4c31-af97-2588749ed5d1" end_index="3" portType="0" />
     <Dynamo.Graph.Connectors.ConnectorModel start="7f599b7b-f639-4918-a5b3-dc3d7b3476d0" start_index="0" end="48c66b7a-d765-4c31-af97-2588749ed5d1" end_index="5" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="a36f99b2-413e-4d98-8fd7-ccd8358ec16d" start_index="0" end="4e90dac5-df84-4b4a-9d7a-799c5dae0b85" end_index="1" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="0f93f4a3-141e-4cf0-954e-02c991396921" start_index="0" end="4e90dac5-df84-4b4a-9d7a-799c5dae0b85" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="4e90dac5-df84-4b4a-9d7a-799c5dae0b85" start_index="0" end="078e7bb8-60fa-42ec-94fe-9819852c22c8" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="078e7bb8-60fa-42ec-94fe-9819852c22c8" start_index="0" end="48c66b7a-d765-4c31-af97-2588749ed5d1" end_index="3" portType="0" />
   </Connectors>
   <Notes>
-    <Dynamo.Graph.Notes.NoteModel guid="1f7ed75c-d75a-48b6-ad1d-3087eb4cd3ec" text="para1: image export directory&#xD;&#xA;para2: scale: digit vs. print (feet)&#xD;&#xA;para3: ppi&#xD;&#xA;para4: ScopeBox name&#xD;&#xA;para5: ViewTemplate name&#xD;&#xA;para6: delete temporary DetailView afterward" x="1017.6791164025" y="-62.4792296066348" />
+    <Dynamo.Graph.Notes.NoteModel guid="1f7ed75c-d75a-48b6-ad1d-3087eb4cd3ec" text="para1: image export directory&#xD;&#xA;para2: slices&#xD;&#xA;para3: ScopeBox name&#xD;&#xA;para4: ViewTemplate name&#xD;&#xA;para5: delete temporary DetailView afterward" x="1048.28943880828" y="-103.68543284518" />
   </Notes>
   <Annotations>
-    <Dynamo.Graph.Annotations.AnnotationModel guid="b0d6e6dc-b093-4f22-b8dd-2d4a9bb5c92a" annotationText="input 1" left="1007.6791164025" top="-92.4792296066348" width="333.53093749909" height="313.98250311375" fontSize="14" InitialTop="-62.4792296066348" InitialHeight="312.983639261595" TextblockHeight="20" backgrouund="#FFC1D676">
+    <Dynamo.Graph.Annotations.AnnotationModel guid="b0d6e6dc-b093-4f22-b8dd-2d4a9bb5c92a" annotationText="input 1" left="1033.93377584472" top="-133.68543284518" width="347" height="298.33714329881" fontSize="14" InitialTop="-103.68543284518" InitialHeight="312.983639261595" TextblockHeight="20" backgrouund="#FFC1D676">
       <Models ModelGuid="d5c1fe87-270a-4c1b-9e06-f0552677a491" />
       <Models ModelGuid="1f7ed75c-d75a-48b6-ad1d-3087eb4cd3ec" />
     </Dynamo.Graph.Annotations.AnnotationModel>
-    <Dynamo.Graph.Annotations.AnnotationModel guid="abf39d85-f686-4d86-8146-ed7d23e8ce02" annotationText="input 2" left="2081.09596486175" top="172.407714814535" width="227.43130167909" height="313.196330755037" fontSize="14" InitialTop="202.407714814535" InitialHeight="238.616419512883" TextblockHeight="20" backgrouund="#FFC1D676">
+    <Dynamo.Graph.Annotations.AnnotationModel guid="abf39d85-f686-4d86-8146-ed7d23e8ce02" annotationText="input 2" left="2105.18494025913" top="176.853900368636" width="245" height="313.196330755037" fontSize="14" InitialTop="206.853900368636" InitialHeight="238.616419512883" TextblockHeight="20" backgrouund="#FFC1D676">
       <Models ModelGuid="cff46afc-49a1-4f5b-87c3-7284573648f0" />
       <Models ModelGuid="c49fa72e-2b49-4831-b54a-6bde39404b72" />
       <Models ModelGuid="b2200556-9530-4170-b482-6c71e3203999" />
